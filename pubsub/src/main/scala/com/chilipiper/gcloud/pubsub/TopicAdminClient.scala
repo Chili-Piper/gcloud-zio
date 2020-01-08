@@ -1,10 +1,9 @@
 package com.chilipiper.gcloud.pubsub
 
-import com.google.cloud.pubsub.v1.{Publisher, TopicAdminSettings, TopicAdminClient => GTopicAdminClient}
+import com.google.cloud.pubsub.v1.{TopicAdminSettings, TopicAdminClient => GTopicAdminClient}
 import com.google.iam.v1.Policy
-import com.google.pubsub.v1.{ProjectName, ProjectTopicName, Topic}
-import zio.{RIO, ZIO, ZManaged}
-import interop._
+import com.google.pubsub.v1.{ProjectTopicName, Topic}
+import zio._
 import zio.blocking._
 
 /**
@@ -26,7 +25,7 @@ object TopicAdminClient {
 
     def apply(settings: TopicAdminSettings): ZManaged[Any, Throwable, TopicAdminClient] = {
       val acq = ZIO.effect(GTopicAdminClient.create(settings))
-      val rel = (x: GTopicAdminClient) => ZIO.effect(x.shutdown()).ignore
+      val rel = shutdown[GTopicAdminClient]
 
       ZManaged.make(acq)(rel).map { client =>
         new TopicAdminClient {
@@ -52,6 +51,5 @@ object TopicAdminClient {
         }
       }
     }
-
-  }
+}
 

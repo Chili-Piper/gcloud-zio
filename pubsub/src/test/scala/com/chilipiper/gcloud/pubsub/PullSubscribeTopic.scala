@@ -1,9 +1,8 @@
-package googlepubsubz
+package com.chilipiper.gcloud.pubsub
 
-import com.chilipiper.gcloud.pubsub.SubscriptionAdminClient
 import com.chilipiper.gcloud.pubsub.pull.Subscriber
-import com.google.pubsub.v1.{ProjectSubscriptionName, ProjectTopicName, PushConfig}
-import zio.{App, IO, ZEnv, ZIO}
+import com.google.pubsub.v1._
+import zio._
 import zio.duration._
 
 object PullSubscribeTopic extends App {
@@ -38,5 +37,4 @@ object PullSubscribeTopic extends App {
     }
     .runDrain
   }
-
 }

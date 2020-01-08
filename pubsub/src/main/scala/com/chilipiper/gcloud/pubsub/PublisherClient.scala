@@ -1,11 +1,11 @@
 package com.chilipiper.gcloud.pubsub
 
+import com.chilipiper.gcloud.pubsub.codec.PubSubEncoder
+import com.chilipiper.gcloud.pubsub.interop._
 import com.google.api.gax.batching.BatchingSettings
 import com.google.cloud.pubsub.v1.Publisher
 import com.google.pubsub.v1.{PubsubMessage, TopicName}
-import com.chilipiper.gcloud.pubsub.codec.PubSubEncoder
-import zio.{RIO, Task, ZIO, ZManaged}
-import interop._
+import zio._
 import zio.blocking.Blocking
 
 /**
@@ -20,13 +20,13 @@ trait PublisherClient {
   object PublisherClient {
     def apply(topicName: TopicName): ZManaged[Blocking, Throwable, PublisherClient] = {
       val acq = ZIO.effect(Publisher.newBuilder(topicName).build())
-      val rel = (x: Publisher) => ZIO.effect(x.shutdown()).ignore
+      val rel = shutdown[Publisher](_.shutdown())
 
       ZManaged.make(acq)(rel)
         .map { publisher =>
           new PublisherClient {
             def publish(message: PubsubMessage): RIO[Blocking, String] = {
-              Task.fromApiFuture(() => publisher.publish(message))
+              Task.fromApiFuture(publisher.publish(message))
             }
 
             def topicName: TopicName = {
@@ -61,10 +61,10 @@ object PublisherClientTyped {
     } yield fromPublisherClient(untyped, topicName)
   }
 
-  def fromPublisherClient[A](publisherClient: PublisherClient, topicName: TopicName)(implicit ev: PubSubEncoder[A]): PublisherClientTyped[A] = {
+  def fromPublisherClient[A: PubSubEncoder](publisherClient: PublisherClient, topicName: TopicName): PublisherClientTyped[A] = {
     new PublisherClientTyped[A] {
       override def publish(message: A): RIO[Blocking, String] = {
-        val encoded = ev.encode(message)
+        val encoded = PubSubEncoder[A].encode(message)
         publisherClient.publish(encoded)
       }
 
@@ -72,5 +72,4 @@ object PublisherClientTyped {
       override def batchingSettings: BatchingSettings = publisherClient.batchingSettings
     }
   }
-
 }

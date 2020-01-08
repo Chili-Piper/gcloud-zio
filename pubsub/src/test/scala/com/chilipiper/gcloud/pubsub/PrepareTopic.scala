@@ -39,5 +39,4 @@ object PrepareTopic extends App {
     }
     ZIO.collectAll(xs)
   }
-
 }

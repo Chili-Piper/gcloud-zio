@@ -1,13 +1,13 @@
 package com.chilipiper.gcloud.pubsub.pull
 
-import com.google.api.core.ApiService
-import com.google.cloud.pubsub.v1.{MessageReceiver, AckReplyConsumer => GAckReplyConsumer, Subscriber => GSubscriber}
-import com.google.pubsub.v1.{ProjectSubscriptionName, PubsubMessage}
 import com.chilipiper.gcloud.pubsub.codec.PubSubDecoder
 import com.chilipiper.gcloud.pubsub.interop._
 import com.chilipiper.gcloud.pubsub.pull.Subscriber.Payload
 import com.chilipiper.gcloud.pubsub.pull.SubscriberTyped.PayloadTyped
-import zio.{Cause, Queue, ZIO, ZManaged}
+import com.google.api.core.ApiService
+import com.google.cloud.pubsub.v1.{MessageReceiver, AckReplyConsumer => GAckReplyConsumer, Subscriber => GSubscriber}
+import com.google.pubsub.v1.{ProjectSubscriptionName, PubsubMessage}
+import zio._
 import zio.blocking._
 import zio.stream._
 
@@ -16,7 +16,7 @@ import zio.stream._
  */
 trait Subscriber {
   def stream: ZStream[Any, Nothing, Payload]
-  def state: ApiService.State
+  def state: UIO[ApiService.State]
   def subscriptionName: ProjectSubscriptionName
 }
 
@@ -44,7 +44,7 @@ object Subscriber {
           def receiveMessage(m: PubsubMessage, r: GAckReplyConsumer): Unit = {
             val payload: Payload = new Payload {
               val message: PubsubMessage = m
-              val reply = AckReplyConsumer.fromGoogle(r)
+              val reply: AckReplyConsumer = AckReplyConsumer.fromGoogle(r)
             }
             val eff = queue.offer(payload)
             runtime.unsafeRunAsync_(eff)
@@ -63,7 +63,7 @@ object Subscriber {
     ZManaged.make(acq)(rel).map { case (apiService, queue) =>
       val sub: Subscriber = new Subscriber {
         def stream: ZStream[Any, Nothing, Payload] = ZStream.fromQueue(queue)
-        def state: ApiService.State = apiService.state()
+        def state: UIO[ApiService.State] = UIO(apiService.state)
         def subscriptionName: ProjectSubscriptionName = name
       }
       sub
@@ -76,7 +76,7 @@ object Subscriber {
  */
 trait SubscriberTyped[A] {
   def stream: ZStream[Any, Throwable, Take[Throwable, PayloadTyped[A]]]
-  def state: ApiService.State
+  def state: UIO[ApiService.State]
   def subscriptionName: ProjectSubscriptionName
 }
 
@@ -94,14 +94,14 @@ object SubscriberTyped {
    * Subscribes and pulls elements into intermediary queue. Sharing resulting subscriber's
    * stream would result in competing consumers.
    */
-  def subscribe[A](name: ProjectSubscriptionName, queueCapacity: Int = 32)(implicit ev: PubSubDecoder[A]): ZManaged[Blocking, Throwable, SubscriberTyped[A]] = {
+  def subscribe[A: PubSubDecoder](name: ProjectSubscriptionName, queueCapacity: Int = 32): ZManaged[Blocking, Throwable, SubscriberTyped[A]] = {
     for {
       untyped <- Subscriber.subscribe(name, queueCapacity)
     } yield new SubscriberTyped[A] {
       override def stream: ZStream[Any, Throwable, Take[Throwable, PayloadTyped[A]]] = untyped.stream.mapM { x =>
-        val decoded = ev.decode(x.message)
+        val decoded = PubSubDecoder[A].decode(x.message)
         val zio = decoded match {
-          case Left(err) => ZIO.succeed(Take.Fail(Cause.Fail(new Exception(s"Failed deserializing payload - $err"))))
+          case Left(e) => ZIO.succeed(Take.Fail(Cause.Fail(e)))
           case Right(m) =>
             val payload: PayloadTyped[A] = new PayloadTyped[A] {
               override def message: A = m
@@ -112,7 +112,7 @@ object SubscriberTyped {
         }
         zio
       }
-      override def state: ApiService.State = untyped.state
+      override def state: UIO[ApiService.State] = untyped.state
       override def subscriptionName: ProjectSubscriptionName = untyped.subscriptionName
     }
   }

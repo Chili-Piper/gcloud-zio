@@ -15,5 +15,4 @@ object GrpcInterops {
           case e: io.grpc.StatusException if e.getStatus == Status.ALREADY_EXISTS => ZIO.succeed(None)
         }
   }
-
 }
