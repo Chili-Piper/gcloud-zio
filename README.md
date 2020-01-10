@@ -18,7 +18,9 @@ for above-mentioned purpose.
 ### [Google PubSub](https://cloud.google.com/pubsub)
 
 ```
-libraryDependencies += "com.chilipiper" %% "gcloud-pubsub" % version
+resolvers += Resolver.bintrayRepo("chili-piper", "gcloud-zio"),
+
+libraryDependencies += "com.chilipiper" %% "pubsub" % version
 ```
 
 ## Design goals

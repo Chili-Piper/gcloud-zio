@@ -12,9 +12,10 @@ lazy val supportedScalaVersions = List(scala213, scala212)
 ThisBuild / organization := "com.chilipiper"
 ThisBuild / scalaVersion := scala213
 
-
 val publishSettings = Seq(
   bintrayRepository := "gcloud-zio",
+  bintrayOrganization := Some("chili-piper"),
+  bintrayReleaseOnPublish := true,
   licenses := Seq("MIT" -> url("http://opensource.org/licenses/MIT"))
 )
 
