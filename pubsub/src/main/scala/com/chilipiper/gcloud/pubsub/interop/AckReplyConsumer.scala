@@ -12,5 +12,4 @@ object AckReplyConsumer {
     val nack = effectBlocking(x.nack())
     AckReplyConsumer(ack, nack)
   }
-
 }

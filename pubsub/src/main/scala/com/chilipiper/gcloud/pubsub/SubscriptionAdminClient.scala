@@ -1,11 +1,11 @@
 package com.chilipiper.gcloud.pubsub
 
-import com.google.cloud.pubsub.v1.{SubscriptionAdminSettings, SubscriptionAdminClient => GSubscriptionAdminClient}
-import com.google.pubsub.v1.{ProjectSubscriptionName, ProjectTopicName, PushConfig, Subscription}
 import com.chilipiper.gcloud.pubsub.interop.GrpcInterops._
+import com.google.cloud.pubsub.v1.{SubscriptionAdminSettings, SubscriptionAdminClient => GSubscriptionAdminClient}
+import com.google.pubsub.v1._
+import zio._
 import zio.blocking._
 import zio.duration._
-import zio._
 
 
 /**
@@ -23,7 +23,7 @@ object SubscriptionAdminClient {
 
   def apply(settings: SubscriptionAdminSettings): ZManaged[Any, Throwable, SubscriptionAdminClient] = {
     val acq = ZIO.effect(GSubscriptionAdminClient.create(settings))
-    val rel = (x: GSubscriptionAdminClient) => ZIO.effect(x.shutdown()).ignore
+    val rel = shutdown[GSubscriptionAdminClient]
 
     ZManaged.make(acq)(rel).map { client =>
       new SubscriptionAdminClient {
