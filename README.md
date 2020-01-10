@@ -15,6 +15,8 @@ for above-mentioned purpose.
 
 ## Modules
 
+You can find versions and modules [here](https://bintray.com/chili-piper/gcloud-zio).
+
 ### [Google PubSub](https://cloud.google.com/pubsub)
 
 ```
