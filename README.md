@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/Chili-Piper/gcloud-zio.svg?branch=master)](https://travis-ci.org/Chili-Piper/gcloud-zio)
+
 # Chilipiper's Google Cloud ZIO
 
 This multiproject contains suite of wrapper libraries around Google Cloud instrastructure.
