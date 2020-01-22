@@ -75,7 +75,7 @@ object Subscriber {
  * Typed version of subscriber, containing stream of either decoding failures or payloads
  */
 trait SubscriberTyped[A] {
-  def stream: ZStream[Any, Throwable, Take[Throwable, PayloadTyped[A]]]
+  def stream: ZStream[Any, PullError, PayloadTyped[A]]
   def state: UIO[ApiService.State]
   def subscriptionName: ProjectSubscriptionName
 }
@@ -94,21 +94,20 @@ object SubscriberTyped {
    * Subscribes and pulls elements into intermediary queue. Sharing resulting subscriber's
    * stream would result in competing consumers.
    */
-  def subscribe[A: PubSubDecoder](name: ProjectSubscriptionName, queueCapacity: Int = 32): ZManaged[Blocking, Throwable, SubscriberTyped[A]] = {
+  def subscribe[A: PubSubDecoder](name: ProjectSubscriptionName, queueCapacity: Int = 32): ZManaged[Blocking, PullError, SubscriberTyped[A]] = {
     for {
-      untyped <- Subscriber.subscribe(name, queueCapacity)
+      untyped <- Subscriber.subscribe(name, queueCapacity).mapError(GenericPullFailed)
     } yield new SubscriberTyped[A] {
-      override def stream: ZStream[Any, Throwable, Take[Throwable, PayloadTyped[A]]] = untyped.stream.mapM { x =>
+      override def stream: ZStream[Any, DeserializatonFailed, PayloadTyped[A]] = untyped.stream.mapM { x =>
         val decoded = PubSubDecoder[A].decode(x.message)
         val zio = decoded match {
-          case Left(e) => ZIO.succeed(Take.Fail(Cause.Fail(e)))
+          case Left(e) => ZIO.fail(DeserializatonFailed(x.message, e))
           case Right(m) =>
             val payload: PayloadTyped[A] = new PayloadTyped[A] {
               override def message: A = m
-
               override def reply: AckReplyConsumer = x.reply
             }
-            ZIO.succeed(Take.Value(payload))
+            ZIO.succeed(payload)
         }
         zio
       }
