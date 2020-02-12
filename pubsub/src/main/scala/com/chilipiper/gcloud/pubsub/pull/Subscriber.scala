@@ -101,7 +101,7 @@ object SubscriberTyped {
       override def stream: ZStream[Any, DeserializatonFailed, PayloadTyped[A]] = untyped.stream.mapM { x =>
         val decoded = PubSubDecoder[A].decode(x.message)
         val zio = decoded match {
-          case Left(e) => ZIO.fail(DeserializatonFailed(x.message, e))
+          case Left(e) => ZIO.fail(DeserializatonFailed(x.message, x.reply, e))
           case Right(m) =>
             val payload: PayloadTyped[A] = new PayloadTyped[A] {
               override def message: A = m
