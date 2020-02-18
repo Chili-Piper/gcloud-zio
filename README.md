@@ -23,8 +23,13 @@ You can find versions and modules [here](https://bintray.com/chili-piper/gcloud-
 
 ```
 resolvers += Resolver.bintrayRepo("chili-piper", "gcloud-zio"),
+libraryDependencies += "com.chilipiper" %% "gcloud-zio-pubsub" % version
+```
 
-libraryDependencies += "com.chilipiper" %% "pubsub" % version
+### [Google Scheduler](https://cloud.google.com/scheduler)
+```
+resolvers += Resolver.bintrayRepo("chili-piper", "gcloud-zio"),
+libraryDependencies += "com.chilipiper" %% "gcloud-zio-scheduler" % version
 ```
 
 ## Design goals
