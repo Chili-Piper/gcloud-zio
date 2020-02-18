@@ -19,6 +19,10 @@ val publishSettings = Seq(
   licenses := Seq("MIT" -> url("http://opensource.org/licenses/MIT"))
 )
 
+val dontPublishSettings = Seq(
+  publish := { },
+  bintrayReleaseOnPublish := false,
+)
 
 val zioDeps = Seq(
   "dev.zio" %% "zio" % "1.0.0-RC17",
@@ -29,19 +33,39 @@ val zioJavaDep = "dev.zio" %% "zio-interop-java" % "1.1.0.0-RC6"
 val zioFutureDep = "dev.zio" %% "zio-interop-future" % "2.12.8.0-RC6"
 
 lazy val root = (project in file("."))
-  .aggregate(pubsub)
+  .aggregate(common, pubsub, scheduler, tasks)
   .settings(
     crossScalaVersions := Nil,
     publish / skip := true
   )
 
-lazy val pubsub = (project in file("pubsub"))
+lazy val common = Project("gcloud-zio-common", file("common"))
   .settings(
     publishSettings,
     crossScalaVersions := supportedScalaVersions,
 
     libraryDependencies ++= zioDeps,
     libraryDependencies += zioJavaDep,
-    libraryDependencies += "com.google.cloud" % "google-cloud-pubsub" % "1.96.0",
   )
 
+lazy val pubsub = Project("gcloud-zio-pubsub", file("pubsub"))
+  .settings(
+    publishSettings,
+    crossScalaVersions := supportedScalaVersions,
+    libraryDependencies += "com.google.cloud" % "google-cloud-pubsub" % "1.96.0",
+  ).dependsOn(common)
+
+lazy val scheduler = Project("gcloud-zio-scheduler", file("scheduler"))
+  .settings(
+    dontPublishSettings,
+    crossScalaVersions := supportedScalaVersions,
+    libraryDependencies += "com.google.cloud" % "google-cloud-scheduler" % "1.22.2",
+  ).dependsOn(common)
+
+
+lazy val tasks = Project("gcloud-zio-tasks", file("tasks"))
+  .settings(
+    publishSettings,
+    crossScalaVersions := supportedScalaVersions,
+    libraryDependencies += "com.google.cloud" % "google-cloud-tasks" % "1.28.2",
+  ).dependsOn(common)

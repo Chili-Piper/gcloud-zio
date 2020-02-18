@@ -23,8 +23,13 @@ You can find versions and modules [here](https://bintray.com/chili-piper/gcloud-
 
 ```
 resolvers += Resolver.bintrayRepo("chili-piper", "gcloud-zio"),
+libraryDependencies += "com.chilipiper" %% "gcloud-zio-pubsub" % version
+```
 
-libraryDependencies += "com.chilipiper" %% "pubsub" % version
+### [Google Tasks](https://cloud.google.com/tasks)
+```
+resolvers += Resolver.bintrayRepo("chili-piper", "gcloud-zio"),
+libraryDependencies += "com.chilipiper" %% "gcloud-zio-tasks" % version
 ```
 
 ## Design goals
