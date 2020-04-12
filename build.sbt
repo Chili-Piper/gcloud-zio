@@ -6,7 +6,7 @@ version := "0.1"
 scalaVersion := "2.13.1"
 
 lazy val scala213 = "2.13.1"
-lazy val scala212 = "2.12.10"
+lazy val scala212 = "2.12.11"
 lazy val supportedScalaVersions = List(scala213, scala212)
 
 ThisBuild / organization := "com.chilipiper"
@@ -25,12 +25,10 @@ val dontPublishSettings = Seq(
 )
 
 val zioDeps = Seq(
-  "dev.zio" %% "zio" % "1.0.0-RC17",
-  "dev.zio" %% "zio-streams" % "1.0.0-RC17"
+  "dev.zio" %% "zio" % "1.0.0-RC18-2",
+  "dev.zio" %% "zio-streams" % "1.0.0-RC18-2"
 )
-val zioReactiveDep = "dev.zio" %% "zio-interop-reactivestreams" % "1.0.3.5-RC2"
-val zioJavaDep = "dev.zio" %% "zio-interop-java" % "1.1.0.0-RC6"
-val zioFutureDep = "dev.zio" %% "zio-interop-future" % "2.12.8.0-RC6"
+val zioReactiveDep = "dev.zio" %% "zio-interop-reactivestreams" % "1.0.3.5-RC6"
 
 lazy val root = (project in file("."))
   .aggregate(common, pubsub, scheduler, tasks)
@@ -45,7 +43,6 @@ lazy val common = Project("gcloud-zio-common", file("common"))
     crossScalaVersions := supportedScalaVersions,
 
     libraryDependencies ++= zioDeps,
-    libraryDependencies += zioJavaDep,
   )
 
 lazy val pubsub = Project("gcloud-zio-pubsub", file("pubsub"))

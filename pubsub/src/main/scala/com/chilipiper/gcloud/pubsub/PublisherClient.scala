@@ -26,7 +26,7 @@ trait PublisherClient {
         .map { publisher =>
           new PublisherClient {
             def publish(message: PubsubMessage): RIO[Blocking, String] = {
-              Task.fromApiFuture(publisher.publish(message))
+              ZIO.fromFutureJava(publisher.publish(message))
             }
 
             def topicName: TopicName = {
