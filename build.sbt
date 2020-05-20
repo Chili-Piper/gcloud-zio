@@ -25,8 +25,8 @@ val dontPublishSettings = Seq(
 )
 
 val zioDeps = Seq(
-  "dev.zio" %% "zio" % "1.0.0-RC19",
-  "dev.zio" %% "zio-streams" % "1.0.0-RC19"
+  "dev.zio" %% "zio" % "1.0.0-RC19-2",
+  "dev.zio" %% "zio-streams" % "1.0.0-RC19-2"
 )
 
 lazy val root = (project in file("."))
