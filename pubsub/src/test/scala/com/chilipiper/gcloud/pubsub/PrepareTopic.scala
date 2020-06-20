@@ -7,7 +7,7 @@ import zio._
 object PrepareTopic extends App {
   val Topic = ProjectTopicName.of("kadekm-push-test", "my-topic")
 
-  override def run(args: List[String]): ZIO[ZEnv, Nothing, Int] = {
+  override def run(args: List[String]): ZIO[ZEnv, Nothing, ExitCode] = {
 
     val topicProg = TopicAdminClient.default
       .use(prepareTopic)
@@ -19,12 +19,7 @@ object PrepareTopic extends App {
       topicProg.ignore *>
         publishProg
 
-    prog.either.map {
-      case Left(err) =>
-        err.printStackTrace()
-        -1
-      case Right(_) => 0
-    }
+    prog.exitCode
   }
 
   private def prepareTopic(client: TopicAdminClient) = {

@@ -9,19 +9,14 @@ object PullSubscribeTopic extends App {
   val Topic = ProjectTopicName.of("kadekm-push-test", "my-topic")
   val Sub = ProjectSubscriptionName.of("kadekm-push-test", "subscription1")
 
-  override def run(args: List[String]): ZIO[ZEnv, Nothing, Int] = {
+  override def run(args: List[String]): ZIO[ZEnv, Nothing, ExitCode] = {
 
     val adminSubProg = SubscriptionAdminClient.default.use(subscribe)
     val subProg = Subscriber.subscribe(Sub).use(pull)
 
     val prog = adminSubProg.ignore *> subProg
 
-    prog.either.map {
-      case Left(err) =>
-        err.printStackTrace()
-        -1
-      case Right(_) => 0
-    }
+    prog.exitCode
   }
 
   private def subscribe(client: SubscriptionAdminClient) = {
