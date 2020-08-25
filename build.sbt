@@ -3,9 +3,9 @@ name := "gcloud-zio"
 
 version := "0.1"
 
-scalaVersion := "2.13.2"
+scalaVersion := "2.13.3"
 
-lazy val scala213 = "2.13.2"
+lazy val scala213 = "2.13.3"
 lazy val scala212 = "2.12.11"
 lazy val supportedScalaVersions = List(scala213, scala212)
 
@@ -25,8 +25,8 @@ val dontPublishSettings = Seq(
 )
 
 val zioDeps = Seq(
-  "dev.zio" %% "zio" % "1.0.0-RC21",
-  "dev.zio" %% "zio-streams" % "1.0.0-RC21"
+  "dev.zio" %% "zio" % "1.0.1",
+  "dev.zio" %% "zio-streams" % "1.0.1"
 )
 
 lazy val root = (project in file("."))
